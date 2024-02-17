@@ -5,7 +5,8 @@
  * @format
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { NativeModules } from 'react-native';
 import type {PropsWithChildren} from 'react';
 import {
   SafeAreaView,
@@ -58,9 +59,19 @@ function Section({children, title}: SectionProps): React.JSX.Element {
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
+  const [greeting, setGreeting] = useState('<EMPTY>');
+
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
+
+  const {EncModule} = NativeModules
+
+  useEffect(() => {
+    EncModule.greet("Ashish").then((greeting) => {
+      setGreeting(greeting)
+    })
+  }, []) // run only once
 
   return (
     <SafeAreaView style={backgroundStyle}>
@@ -77,8 +88,7 @@ function App(): React.JSX.Element {
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
           <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
+            Greeting={greeting}
           </Section>
           <Section title="See Your Changes">
             <ReloadInstructions />
