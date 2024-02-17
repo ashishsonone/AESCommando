@@ -64,3 +64,8 @@ yarn-error.log
 
 # testing
 /coverage
+
+
+# CUSTOM
+android/app/src/main/assets/index.android.bundle
+

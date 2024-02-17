@@ -6,8 +6,10 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { NativeModules } from 'react-native';
+import { Button, NativeModules, Switch, TextInput, TouchableOpacity } from 'react-native';
 import type {PropsWithChildren} from 'react';
+import Clipboard from '@react-native-clipboard/clipboard';
+
 import {
   SafeAreaView,
   ScrollView,
@@ -20,46 +22,68 @@ import {
 
 import {
   Colors,
-  DebugInstructions,
   Header,
-  LearnMoreLinks,
-  ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
 type SectionProps = PropsWithChildren<{
   title: string;
 }>;
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+// function Section({children, title}: SectionProps): React.JSX.Element {
+//   const isDarkMode = useColorScheme() === 'dark';
+//   return (
+//     <View style={styles.sectionContainer}>
+//       <Text
+//         style={[
+//           styles.sectionTitle,
+//           {
+//             color: isDarkMode ? Colors.white : Colors.black,
+//           },
+//         ]}>
+//         {title}
+//       </Text>
+//       <Text
+//         style={[
+//           styles.sectionDescription,
+//           {
+//             color: isDarkMode ? Colors.light : Colors.dark,
+//           },
+//         ]}>
+//         {children}
+//       </Text>
+//     </View>
+//   );
+// }
+
+// const NewLineBreak = () => <br />;
+
+// const ToggleButton = ({onToggleChange, onText, offText}) => {
+//   const [isToggled, setIsToggled] = useState(false);
+
+//   const handleToggle = () => {
+//     setIsToggled(!isToggled);
+//     onToggleChange(!isToggled)
+//   };
+
+//   return (
+//     <TouchableOpacity style={[styles.button, isToggled ? styles.buttonActive : null]} onPress={handleToggle}>
+//       <Text style={styles.buttonText}>{isToggled ? onText : offText}</Text>
+//     </TouchableOpacity>
+//   );
+// };
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const isDarkMode = false // useColorScheme() === 'dark';
 
-  const [greeting, setGreeting] = useState('<EMPTY>');
+  const [input, setInput] = useState('');
+  const [password, setPassword] = useState('');
+  const [encModeOn, setEncModeOn] = useState(true)
+
+  const [outText, setOutText] = useState('<EMPTY>');
+
+  const copyToClipboard = () => {
+    Clipboard.setString(outText)
+  }
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
@@ -67,11 +91,19 @@ function App(): React.JSX.Element {
 
   const {EncModule} = NativeModules
 
-  useEffect(() => {
-    EncModule.greet("Ashish").then((greeting) => {
-      setGreeting(greeting)
-    })
-  }, []) // run only once
+  const pressMe = async () => {
+    // setInput('Ho ho')
+    // console.log({encModeOn, input, password})
+
+    if (encModeOn) {
+      const cipherText = await EncModule.encode(input, password)
+      setOutText(cipherText)
+    }
+    else {
+      const plainText = await EncModule.decode(input, password)
+      setOutText(plainText)
+    }
+  }
 
   return (
     <SafeAreaView style={backgroundStyle}>
@@ -82,24 +114,43 @@ function App(): React.JSX.Element {
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={backgroundStyle}>
-        <Header />
         <View
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
-          <Section title="Step One">
-            Greeting={greeting}
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+
+          <View style={styles.container}>
+            <Text style={styles.headerText}>AES Commando</Text>
+          </View>
+
+          <View style={styles.container}>
+            <Text>{encModeOn && 'Encryption Mode' || 'Decryption Mode'}</Text>
+            <Switch
+              trackColor={{ false: "#767577", true: "#81b0ff" }}
+              thumbColor={encModeOn ? "#f5dd4b" : "#f4f3f4"}
+              onValueChange={setEncModeOn}
+              value={encModeOn}
+            />
+          </View>
+
+          <TextInput
+            style={styles.input}
+            editable={true}
+            onChangeText={setInput}
+            value={input}/>
+
+          <TextInput
+            style={styles.input}
+            editable={true}
+            onChangeText={setPassword}
+            value={password}/>
+
+          <View style={styles.container}>
+            <Button title={"Run"} onPress={pressMe} />
+            <Text>Output={outText}</Text>
+            <Button title={"Copy To Clipboarad"} onPress={copyToClipboard} />
+          </View>
+
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -107,6 +158,11 @@ function App(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center"
+  },
   sectionContainer: {
     marginTop: 32,
     paddingHorizontal: 24,
@@ -122,6 +178,36 @@ const styles = StyleSheet.create({
   },
   highlight: {
     fontWeight: '700',
+  },
+  input: {
+    height: 40,
+    margin: 12,
+    borderWidth: 1,
+    padding: 10,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)', // Semi-transparent background for better text visibility
+    padding: 20,
+  },
+  // toggle button
+  button: {
+    backgroundColor: '#DDDDDD',
+    padding: 10,
+    borderRadius: 5,
+    margin: 10,
+  },
+  buttonActive: {
+    backgroundColor: '#99CCFF',
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'black',
+    textAlign: 'center',
   },
 });
 
