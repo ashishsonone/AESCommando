@@ -93,15 +93,25 @@ function App(): React.JSX.Element {
 
   const pressMe = async () => {
     // setInput('Ho ho')
-    // console.log({encModeOn, input, password})
+    console.log({encModeOn, input, password})
 
     if (encModeOn) {
-      const cipherText = await EncModule.encode(input, password)
-      setOutText(cipherText)
+      try {
+        const cipherText = await EncModule.encode(input, password)
+        setOutText(cipherText)
+      }
+      catch(e: any) {
+        setOutText(`Encryption Error : Unexpected ${e}`)
+      }
     }
     else {
-      const plainText = await EncModule.decode(input, password)
-      setOutText(plainText)
+      try {
+        const plainText = await EncModule.decode(input, password)
+        setOutText(plainText)
+      }
+      catch (e: any) {
+        setOutText(`Decryption Error : Input/password invalid : ${e}`)
+      }
     }
   }
 
@@ -124,7 +134,7 @@ function App(): React.JSX.Element {
           </View>
 
           <View style={styles.container}>
-            <Text>{encModeOn && 'Encryption Mode' || 'Decryption Mode'}</Text>
+            <Text>{encModeOn && 'Encryptionn Mode' || 'Decryption Mode'}</Text>
             <Switch
               trackColor={{ false: "#767577", true: "#81b0ff" }}
               thumbColor={encModeOn ? "#f5dd4b" : "#f4f3f4"}

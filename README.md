@@ -26,6 +26,6 @@ adb shell dumpsys package com.aescommando | grep permission
 ```
 
 ## TODO
-- [ ] Handle exceptions and show proper error msg
+- [x] Handle exceptions and show proper error msg
 - [x] Handle dark theme
 - [x] Remove INTERNET permission from manifest file
